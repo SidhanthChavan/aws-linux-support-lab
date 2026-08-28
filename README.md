@@ -1,34 +1,41 @@
 # AWS Linux Support Lab
 
-A practical cloud-support lab covering Linux administration, Docker deployment, AWS EC2 operations, SSH access, networking, troubleshooting, and service recovery.
+A hands-on cloud support project that deploys a containerised FastAPI health service on Amazon Linux 2023 EC2 behind Nginx.
 
-## Objective
+## What this demonstrates
 
-Deploy and operate a small FastAPI service on an Amazon Linux 2023 EC2 instance using Docker, then verify that the service remains recoverable after failure and reboot.
+- Linux server administration and SSH-based deployment
+- Docker image builds, container lifecycle management, and restart policies
+- Nginx reverse proxying and secure local-only container binding
+- Public health checks, incident isolation, service recovery, and reboot validation
 
 ## Architecture
 
 ```text
-Local Mac
-   │ SSH / SCP
-   ▼
-AWS EC2 — Amazon Linux 2023
-   │
-   ▼
-Docker container
-   │
-   ▼
-FastAPI + Uvicorn
-   │
-   ▼
-GET /health
-
-
+Client
+  |
+  v
+EC2 security group - TCP 80
+  |
+  v
+Nginx - TCP 80
+  |
+  v
+Docker container - 127.0.0.1:8000
+  |
+  v
+FastAPI - GET /health
 ```
 
-## Technologies
+## Project structure
 
-AWS EC2 · Amazon Linux 2023 · Docker · FastAPI · Uvicorn · Linux CLI · SSH · SCP · Git
+```text
+app/                         FastAPI application
+infra/nginx-reverse-proxy.conf  Nginx reverse-proxy configuration
+docs/                        Deployment and operational notes
+Dockerfile                   Container build definition
+requirements.txt             Python dependencies
+```
 
 ## Run locally
 
@@ -39,7 +46,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Test the service:
+Verify the service:
 
 ```bash
 curl http://127.0.0.1:8000/health
@@ -55,16 +62,17 @@ Expected response:
 
 ```bash
 docker build -t aws-linux-support-lab .
-docker run -d --name aws-linux-support-lab -p 8000:8000 aws-linux-support-lab
-docker logs aws-linux-support-lab
+docker run --rm -p 8000:8000 aws-linux-support-lab
 ```
 
-## AWS deployment
+Then open `http://127.0.0.1:8000/health`.
 
-The service was copied to an EC2 instance running Amazon Linux 2023, built into a Docker image, and exposed through the configured security-group port.
+## Deployment design
 
-Operational checks included SSH access, Docker service management, container logs, connectivity troubleshooting, automatic restart after reboot, and public health-endpoint verification.
+The EC2 host runs Nginx on port 80. The FastAPI container is bound to `127.0.0.1:8000`, with Nginx forwarding incoming requests to the application. This keeps the application port off the public network while retaining a standard HTTP entry point.
+
+See [deployment and operational notes](docs/deployment-and-troubleshooting.md) for the validated deployment and recovery scenarios.
 
 ## Scope
 
-This is a hands-on junior cloud-support lab, not a production architecture. It demonstrates practical Linux, Docker, AWS, and troubleshooting workflow.
+This repository is a focused cloud-support lab rather than a production platform. Production hardening would include HTTPS, restricted SSH source ranges, monitoring and alerting, infrastructure as code, and a managed container deployment strategy.
