@@ -76,3 +76,7 @@ See [deployment and operational notes](docs/deployment-and-troubleshooting.md) f
 ## Scope
 
 This repository is a focused cloud-support lab rather than a production platform. Production hardening would include HTTPS, restricted SSH source ranges, monitoring and alerting, infrastructure as code, and a managed container deployment strategy.
+
+## Tests and recovery checks
+
+See [testing guide](docs/testing.md) for automated HTTP smoke checks, manual recovery steps and explicit coverage limits.
