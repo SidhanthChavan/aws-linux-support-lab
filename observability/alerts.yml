@@ -1,0 +1,27 @@
+groups:
+  - name: lab-service
+    rules:
+      - alert: LabTargetDown
+        expr: up{job="observability-lab"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus cannot scrape the lab service
+      - alert: LabHighErrorRate
+        expr: |
+          (sum(rate(lab_http_requests_total{job="observability-lab",status=~"5.."}[1m]))
+          / sum(rate(lab_http_requests_total{job="observability-lab"}[1m]))) > 0.2
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than 20% of observed lab requests failed
+      - alert: LabHighLatency
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(lab_http_request_duration_seconds_bucket{job="observability-lab",route="/work"}[1m]))) > 0.3
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: Estimated lab workload p95 exceeds 300ms

@@ -1,0 +1,4 @@
+-r requirements.txt
+prometheus-client==0.26.0
+pytest==9.2.0
+httpx==0.28.1

@@ -1,0 +1,65 @@
+rule_files: [alerts.yml]
+evaluation_interval: 5s
+tests:
+  - interval: 5s
+    input_series:
+      - series: 'up{job="observability-lab",instance="app:8000"}'
+        values: '1 0x20 1x10'
+    alert_rule_test:
+      - eval_time: 20s
+        alertname: LabTargetDown
+        exp_alerts: []
+      - eval_time: 40s
+        alertname: LabTargetDown
+        exp_alerts:
+          - exp_labels:
+              job: observability-lab
+              instance: app:8000
+              severity: critical
+            exp_annotations:
+              summary: Prometheus cannot scrape the lab service
+      - eval_time: 120s
+        alertname: LabTargetDown
+        exp_alerts: []
+  - interval: 5s
+    input_series:
+      - series: 'lab_http_requests_total{job="observability-lab",route="/work",status="503"}'
+        values: '0+10x40'
+      - series: 'lab_http_requests_total{job="observability-lab",route="/work",status="200"}'
+        values: '0+10x40'
+    alert_rule_test:
+      - eval_time: 30s
+        alertname: LabHighErrorRate
+        exp_alerts: []
+      - eval_time: 100s
+        alertname: LabHighErrorRate
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: More than 20% of observed lab requests failed
+  - interval: 5s
+    input_series:
+      - series: 'lab_http_request_duration_seconds_bucket{job="observability-lab",route="/work",le="0.3"}'
+        values: '0+0x40'
+      - series: 'lab_http_request_duration_seconds_bucket{job="observability-lab",route="/work",le="0.5"}'
+        values: '0+10x40'
+      - series: 'lab_http_request_duration_seconds_bucket{job="observability-lab",route="/work",le="+Inf"}'
+        values: '0+10x40'
+    alert_rule_test:
+      - eval_time: 100s
+        alertname: LabHighLatency
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: Estimated lab workload p95 exceeds 300ms
+  - interval: 5s
+    input_series: []
+    alert_rule_test:
+      - eval_time: 100s
+        alertname: LabHighErrorRate
+        exp_alerts: []
+      - eval_time: 100s
+        alertname: LabHighLatency
+        exp_alerts: []
