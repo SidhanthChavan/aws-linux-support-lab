@@ -1,28 +1,15 @@
-# Verification record — 30 October 2026
+# Verification record
 
-## Executed in the development environment
+## Executed checks
 
-| Check | Observed result |
-| --- | --- |
-| Python/FastAPI monitoring behaviour | 7 pytest tests passed |
-| Original service through a live local Uvicorn process | 2 HTTP smoke checks passed: health contract and unknown route |
-| Monitoring service through a live local Uvicorn process | HTTP 200 and controlled 503, request-ID propagation and metric export checked |
-| Prometheus 3.5.0 `promtool check rules` | Success; 3 rules found |
-| Prometheus 3.5.0 `promtool test rules` | Success; fixtures cover target failure/recovery, error rate, latency and absent traffic |
-| YAML files | Parsed successfully |
+The original health service passed two live HTTP smoke checks: the expected health response and HTTP 404 on an unknown route.
 
-The Python test run emitted upstream pytest/Starlette deprecation warnings; these did not fail the tests.
+GitHub Actions run 41147680400 at commit `27dc81db03c3e41650cd5591129902bb1155986c` passed the Docker build and automated local proxy recovery sequence (HTTP 200 → 502 → 200), including the HTTP smoke checks. That combined implementation was subsequently split into the AWS support and separate monitoring repositories. The current AWS workflow repeats the relevant recovery check.
 
-## Docker/CI validation
+## Cloud scope
 
-Docker is unavailable in the development environment. Container builds, Compose networking, the automated 200→502→200 exercise and live Prometheus scraping therefore require the GitHub Actions workflow or a local Docker run. The workflow is included; its presence alone is not evidence of a passing run. Record the actual run URL and result separately.
+The pre-existing deployment notes record an EC2 deployment, port conflict, backend recovery and reboot check. No fresh AWS deployment or reboot was performed for these repository updates.
 
-## Original EC2 exercise
+This lab does not establish production availability, business impact, automated AWS deployment or container orchestration.
 
-The pre-existing [deployment notes](deployment-and-troubleshooting.md) record an EC2 deployment, port conflict, backend failure/recovery and reboot check. These are earlier project observations. No fresh AWS deployment, security-group audit or EC2 reboot was executed for this update.
-
-## Ownership and claim boundaries
-
-Code and documentation were developed with AI assistance. Follow the [hands-on session](hands-on-session.md), retain your own observations and understand the implementation before describing newly added features as personal practical experience.
-
-Neither project demonstrates production availability, business impact, commercial cloud administration, automated AWS deployment, container orchestration or an SLO/error budget.
+The [companion observability repository](https://github.com/SidhanthChavan/service-observability-lab) contains the monitoring code, tests and runbook.

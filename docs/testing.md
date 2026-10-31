@@ -38,7 +38,7 @@ The automated checks exercise a live HTTP endpoint. They do not test Docker
 builds, EC2 provisioning, security-group rules, TLS, monitoring, load, reboot
 recovery or availability. EC2 and reboot scenarios remain manual. The new
 `scripts/check_recovery.py` reproduces the backend stop/start sequence in local
-Docker Compose. The CI workflow validates application tests, container builds,
-local proxy recovery, Prometheus scraping and alert-rule behaviour. It does
+Docker Compose. The CI workflow validates the container build, local proxy recovery and
+HTTP contract. Monitoring checks are in the companion observability repository. It does
 not deploy to AWS. See `deployment-and-troubleshooting.md` for the original
 deployment observations and `verification.md` for the latest validation scope.

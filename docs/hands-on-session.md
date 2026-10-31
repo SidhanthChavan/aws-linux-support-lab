@@ -1,26 +1,17 @@
-# Your next 60-minute practical session
+# A 30-minute recovery exercise
 
-The code and documentation were developed with AI assistance. Complete the checks yourself before presenting them as personal hands-on experience. Keep your own terminal output and explain each result in your own words.
+Code and documentation were developed with AI assistance. Run the checks personally, retain terminal output and explain each observation before presenting the newly added automation as hands-on experience.
 
-## 0–15 minutes: proxy recovery
+## First 15 minutes
 
-Run `python3 scripts/check_recovery.py`. Explain which component is still alive during the 502 and why starting the backend restores 200. This is local Compose; the original EC2 notes are separate evidence.
+With Python 3.12 and Docker Compose installed, run `python3 scripts/check_recovery.py` from the repository root. The script creates the local stack, verifies 200, stops the backend, verifies 502, starts the backend, verifies 200, runs two smoke checks and removes its stack.
 
-## 15–30 minutes: counters and request IDs
+Explain which component is still alive during the 502, why starting the backend restores service, and why the backend does not need a public host port in this local Compose arrangement.
 
-Start the monitoring stack using its README. Generate normal and error traffic. Send `curl -i -H 'X-Request-ID: my-check-1' http://127.0.0.1:8001/work`. Find that ID in the app logs. Identify the 200/503 counter series in `/metrics`.
+## Next 15 minutes
 
-## 30–45 minutes: slow service and target failure
+Read `infra/nginx-compose.conf` alongside `infra/nginx-reverse-proxy.conf`. Explain why the Compose upstream uses the service name while the original EC2 configuration uses `127.0.0.1:8000`.
 
-Run the slow phase and inspect the histogram and latency alert. Then stop the app, observe `up=0` and restore it using the runbook. State which observations prove reachability, successful requests and latency separately.
+Write a short incident note: symptom, checks, action, observed recovery and limits. Local container stop/start is not proof of EC2 reboot recovery; the earlier EC2 exercise is separate evidence.
 
-## 45–60 minutes: write and explain evidence
-
-Write one incident note from your actual run. Capture the query/alert before and after recovery. Answer aloud:
-
-1. Why should a request ID never be a metric label here?
-2. Why did a controlled 503 not make the Prometheus target go down?
-3. What do the histogram buckets mean, and why is p95 approximate?
-4. Which checks ran locally, which ran in CI, and which still require EC2?
-
-Finish by stopping the local stacks. Do not add production scale, customer impact, uptime improvements or AWS automation claims to your CV from these exercises.
+The next exercise is in the [companion monitoring repository](https://github.com/SidhanthChavan/service-observability-lab).

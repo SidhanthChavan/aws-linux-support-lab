@@ -1,13 +1,6 @@
-# Cloud Support Portfolio Labs
+# AWS Deployment & Service Recovery
 
-Two connected personal projects: an AWS/Linux recovery lab and an instrumented service with Prometheus monitoring. These are learning environments, not production services.
-
-| Project | Evidence | Start here |
-| --- | --- | --- |
-| AWS Deployment & Service Recovery | Original EC2 deployment observations, health checks, local proxy recovery exercise | This page and [recovery guide](docs/testing.md) |
-| Service Observability & Prometheus Monitoring | Request counters, duration histogram, request-ID logs, controlled faults, alert rules and tests | [Monitoring project](observability/README.md) |
-
-The original service remains in `app/`. The monitoring service is separate in `observability/`; it does not change the original health contract.
+A personal AWS/Linux support lab: a Dockerised FastAPI service on Amazon Linux 2023 EC2 behind Nginx, with repeatable local failure/recovery checks.
 
 ## What this demonstrates
 
@@ -98,21 +91,16 @@ python3 scripts/check_recovery.py
 
 This builds an isolated local stack, checks HTTP **200 → 502 → 200** while stopping and starting its backend, runs the original smoke checks and removes the stack. It uses `127.0.0.1:8080`; free that port first. The exercise interrupts only the Compose project named `sidhanth-recovery-check`. It does not connect to AWS or validate a host reboot.
 
-### Application tests
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements-dev.txt
-python -m pytest -q
-```
-
 ### Continuous integration
 
-[The workflow](.github/workflows/labs.yml) runs application tests, validates alert rules with `promtool`, builds both container stacks and checks backend recovery plus Prometheus scraping. It is build/test automation, **not automated deployment**. No AWS credentials are required. Consult the actual workflow run before claiming a passing CI result.
+[The workflow](.github/workflows/labs.yml) builds the local Docker stack, verifies HTTP **200 → 502 → 200**, and runs the health/unknown-route smoke checks. This is build/test automation; it does not deploy to AWS. No AWS credentials are required.
 
 ### Evidence and interview preparation
 
-- [Verification record](docs/verification.md): what was actually run and what remains unverified.
-- [Hands-on session](docs/hands-on-session.md): a bounded exercise to complete personally and explain in an interview.
-- [Incident runbook](observability/RUNBOOK.md): distinguish service errors, latency and scrape failure.
+- [Verification record](docs/verification.md): executed checks and their scope.
+- [Hands-on session](docs/hands-on-session.md): reproduce and explain the recovery exercise.
+- [Original EC2 observations](docs/deployment-and-troubleshooting.md): deployment, port conflict and reboot checks from the earlier exercise.
+
+### Companion monitoring project
+
+[Service Observability & Prometheus Monitoring](https://github.com/SidhanthChavan/service-observability-lab) is maintained separately. It covers request metrics, duration histograms, structured logs, controlled errors, Prometheus alerts and their tests.
