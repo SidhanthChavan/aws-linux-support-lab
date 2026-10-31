@@ -1,0 +1,44 @@
+name: Validate support and observability labs
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Application and metric behaviour
+        run: python -m pytest -q
+      - name: Validate Prometheus rules and expected alerts
+        run: |
+          docker run --rm --entrypoint /bin/promtool -v "$PWD/observability:/etc/prometheus:ro" -w /etc/prometheus prom/prometheus:v3.5.0 check rules alerts.yml
+          docker run --rm --entrypoint /bin/promtool -v "$PWD/observability:/etc/prometheus:ro" -w /etc/prometheus prom/prometheus:v3.5.0 test rules rules.test.yml
+      - name: Build and verify proxy failure and recovery
+        run: python scripts/check_recovery.py
+      - name: Build and verify monitoring stack
+        run: |
+          docker compose -p monitoring-check -f observability/compose.yml up --build -d
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8001/health; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8001/health
+          curl -fsS http://127.0.0.1:8001/work
+          curl -fsS http://127.0.0.1:8001/metrics | grep 'lab_http_requests_total'
+          for attempt in $(seq 1 30); do
+            if curl -fsS 'http://127.0.0.1:9090/api/v1/query?query=up' > /tmp/targets.json && python -c 'import json; d=json.load(open("/tmp/targets.json")); assert any(r["metric"].get("job")=="observability-lab" and r["value"][1]=="1" for r in d["data"]["result"])'; then break; fi
+            sleep 1
+          done
+          python -c 'import json; d=json.load(open("/tmp/targets.json")); assert any(r["metric"].get("job")=="observability-lab" and r["value"][1]=="1" for r in d["data"]["result"])'
+      - name: Capture logs
+        if: always()
+        run: docker compose -p monitoring-check -f observability/compose.yml logs --no-color
+      - name: Clean up monitoring stack
+        if: always()
+        run: docker compose -p monitoring-check -f observability/compose.yml down -v

@@ -36,6 +36,9 @@ start a container that was explicitly stopped.
 
 The automated checks exercise a live HTTP endpoint. They do not test Docker
 builds, EC2 provisioning, security-group rules, TLS, monitoring, load, reboot
-recovery or availability. Recovery scenarios remain manual. No CI workflow or
-automated deployment is provided. See `deployment-and-troubleshooting.md` for
-the original deployment observations.
+recovery or availability. EC2 and reboot scenarios remain manual. The new
+`scripts/check_recovery.py` reproduces the backend stop/start sequence in local
+Docker Compose. The CI workflow validates application tests, container builds,
+local proxy recovery, Prometheus scraping and alert-rule behaviour. It does
+not deploy to AWS. See `deployment-and-troubleshooting.md` for the original
+deployment observations and `verification.md` for the latest validation scope.

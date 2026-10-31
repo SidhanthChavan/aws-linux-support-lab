@@ -1,6 +1,13 @@
-# AWS Linux Support Lab
+# Cloud Support Portfolio Labs
 
-A hands-on cloud support project that deploys a containerised FastAPI health service on Amazon Linux 2023 EC2 behind Nginx.
+Two connected personal projects: an AWS/Linux recovery lab and an instrumented service with Prometheus monitoring. These are learning environments, not production services.
+
+| Project | Evidence | Start here |
+| --- | --- | --- |
+| AWS Deployment & Service Recovery | Original EC2 deployment observations, health checks, local proxy recovery exercise | This page and [recovery guide](docs/testing.md) |
+| Service Observability & Prometheus Monitoring | Request counters, duration histogram, request-ID logs, controlled faults, alert rules and tests | [Monitoring project](observability/README.md) |
+
+The original service remains in `app/`. The monitoring service is separate in `observability/`; it does not change the original health contract.
 
 ## What this demonstrates
 
@@ -62,7 +69,7 @@ Expected response:
 
 ```bash
 docker build -t aws-linux-support-lab .
-docker run --rm -p 8000:8000 aws-linux-support-lab
+docker run --rm -p 127.0.0.1:8000:8000 aws-linux-support-lab
 ```
 
 Then open `http://127.0.0.1:8000/health`.
@@ -80,3 +87,32 @@ This repository is a focused cloud-support lab rather than a production platform
 ## Tests and recovery checks
 
 See [testing guide](docs/testing.md) for automated HTTP smoke checks, manual recovery steps and explicit coverage limits.
+
+### Reproduce proxy recovery locally
+
+Requires Docker with the Compose plugin and Python 3.12. From the repository root:
+
+```bash
+python3 scripts/check_recovery.py
+```
+
+This builds an isolated local stack, checks HTTP **200 → 502 → 200** while stopping and starting its backend, runs the original smoke checks and removes the stack. It uses `127.0.0.1:8080`; free that port first. The exercise interrupts only the Compose project named `sidhanth-recovery-check`. It does not connect to AWS or validate a host reboot.
+
+### Application tests
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+python -m pytest -q
+```
+
+### Continuous integration
+
+[The workflow](.github/workflows/labs.yml) runs application tests, validates alert rules with `promtool`, builds both container stacks and checks backend recovery plus Prometheus scraping. It is build/test automation, **not automated deployment**. No AWS credentials are required. Consult the actual workflow run before claiming a passing CI result.
+
+### Evidence and interview preparation
+
+- [Verification record](docs/verification.md): what was actually run and what remains unverified.
+- [Hands-on session](docs/hands-on-session.md): a bounded exercise to complete personally and explain in an interview.
+- [Incident runbook](observability/RUNBOOK.md): distinguish service errors, latency and scrape failure.
