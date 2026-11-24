@@ -104,3 +104,7 @@ This builds an isolated local stack, checks HTTP **200 → 502 → 200** while s
 ### Companion monitoring project
 
 [Service Observability & Prometheus Monitoring](https://github.com/SidhanthChavan/service-observability-lab) is maintained separately. It covers request metrics, duration histograms, structured logs, controlled errors, Prometheus alerts and their tests.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE).
